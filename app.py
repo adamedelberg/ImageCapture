@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = "secret key"
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = os.path.join(ROOT_DIRECTORY, 'static', 'img')
-app.config['UPLOAD_EXTS'] = ['.jpg', '.jpeg']
+app.config['UPLOAD_EXTS'] = ['.jpg', '.JPG']
 
 @app.route("/", methods=['GET'])
 def index():
@@ -38,15 +38,17 @@ def upload_image():
                 return 'An invalid file was specified. Only .jpg or .JPG files are permitted!', 400
             
             # check that the filename does not already exist
+            # if it exists we will append the current timestamp to the filename
             image_names = os.listdir(IMAGE_DIRECTORY)
             
             if (filename in image_names):
+               
                 name = os.path.splitext(filename)[0]
                 file_ext = os.path.splitext(filename)[1]
+
                 dt = datetime.now()
-                
-                # getting the timestamp
                 ts = datetime.timestamp(datetime.now())
+                
                 app.logger.debug('Filename ' + filename + ' exists on the server. Appending timestamp to filename.')
                 filename = name+str(int(ts))+file_ext 
             
@@ -93,7 +95,11 @@ def image_page(current_image):
 
         app.logger.debug('Next image: ' + str(next_image or 'None'))
 
-        return render_template('image_viewer.html', image = current_image, current = current_index, previous = previous_image, next = next_image, total = total)
+        return render_template('image_viewer.html', image = current_image,
+                                                    current = current_index, 
+                                                    previous = previous_image, 
+                                                    next = next_image, 
+                                                    total = total)
 
     return render_template('image_viewer.html')
 
@@ -105,10 +111,8 @@ def image_too_large(e):
 def page_not_exists(e):
     return "The page you tried to navigate to does not exist.", 404
 
-'''
-'''
 def get_sorted_image_list():
-    image_names = filter(lambda x: os.path.isfile(os.path.join(IMAGE_DIRECTORY, x)), os.listdir(IMAGE_DIRECTORY))
+    image_names = filter(lambda file: os.path.isfile(os.path.join(IMAGE_DIRECTORY, file)), os.listdir(IMAGE_DIRECTORY))
     image_names = filter(lambda image: image.endswith('jpg') or image.endswith('JPG'), image_names)
     image_names = sorted(image_names, key = lambda x: os.path.getctime(os.path.join(IMAGE_DIRECTORY, x)))
     return image_names
