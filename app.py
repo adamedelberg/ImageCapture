@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = "secret key"
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = os.path.join(ROOT_DIRECTORY, 'static', 'img')
-app.config['UPLOAD_EXTS'] = ['.jpg', '.jpeg', '.JPG', 'JPEG']
+app.config['UPLOAD_EXTS'] = ['.jpg', '.jpeg']
 
 @app.route("/", methods=['GET'])
 def index():
@@ -35,7 +35,7 @@ def upload_image():
             file_ext = os.path.splitext(filename)[1]
             if file_ext not in app.config['UPLOAD_EXTS']:
                 app.logger.debug('Invalid file was specified for upload: ' + filename)
-                return 'An invalid file was specified. Only JPEG files are permitted!', 400
+                return 'An invalid file was specified. Only .jpg or .JPG files are permitted!', 400
             
             # check that the filename does not already exist
             image_names = os.listdir(IMAGE_DIRECTORY)
@@ -108,7 +108,8 @@ def page_not_exists(e):
 '''
 '''
 def get_sorted_image_list():
-    image_names = filter(lambda x: os.path.isfile(os.path.join(IMAGE_DIRECTORY, x)), os.listdir(IMAGE_DIRECTORY) )
+    image_names = filter(lambda x: os.path.isfile(os.path.join(IMAGE_DIRECTORY, x)), os.listdir(IMAGE_DIRECTORY))
+    image_names = filter(lambda image: image.endswith('jpg') or image.endswith('JPG'), image_names)
     image_names = sorted(image_names, key = lambda x: os.path.getctime(os.path.join(IMAGE_DIRECTORY, x)))
     return image_names
 
